@@ -25,65 +25,36 @@ class User(db.Model):
 @api.route('/users',methods=['GET'], defaults={"page": 1, "per_page": 100})
 @api.route('/users/<int:page>/<int:per_page>', methods=['GET'])
 
-@api.doc(params={'page': 'Page of pagination', 'per_page': 'Total items returned in pagination'})
-
 class UserList(Resource):
-    #@api.marshal_list_with(user)
     def get(self, page, per_page):
         page = page
         per_page = per_page
         user_database = User.query.order_by(User.id).paginate(page=page, per_page = per_page)
 
-        data=[]
-        for user in user_database.items:
-            data.append({
-                'id': user.id,
-                'name': user.name,
-                'country': user.country
-            })
-
+        return generateResponse(user_database, True)
         
-        meta = {
-            'page': user_database.page,
-            'total_per_pages': len(data),
-            'total_count': user_database.total,
-            'prev_page': user_database.prev_num,
-            'next_page': user_database.next_num,
-            'has_next': user_database.has_next,
-            'has_prev': user_database.has_prev
-        }
-        
-        return jsonify({
-            'results':data,
-            'success': True,
-            'meta': meta
-        })
 
 
-@api.route('/user/name/<name>')
-@api.doc(params={'name': 'Name of user'})
+@api.route('/user/name/<name>', defaults={"page": 1, "per_page": 100})
+@api.route('/user/name/<name>/<int:page>/<int:per_page>', methods=['GET'])
 class UserByName(Resource):
-    def get(self, name):
-        user_database = User.query.filter(User.name==name.upper())
+    def get(self, name, page, per_page):
+        page = page
+        per_page = per_page
+        user_database = User.query.filter(User.name==name.upper()).paginate(page=page, per_page = per_page)
         
-        user_json = [user.to_json() for user in user_database]
-        
-        response = generateResponse(user_json, True)
-        
-        return response
+        return generateResponse(user_database, True)
     
 
-@api.route('/user/country/<name>')
-@api.doc(params={'name': 'Name of country'})
+@api.route('/user/country/<name>', defaults={"page": 1, "per_page": 100})
+@api.route('/user/country/<name>/<int:page>/<int:per_page>', methods=['GET'])
 class UserByCountry(Resource):
-    def get(self, name):
-        user_database = User.query.filter(User.country == name.upper())
+    def get(self, name, page, per_page):
+        page = page
+        per_page = per_page
+        user_database = User.query.filter(User.country == name.upper()).paginate(page=page, per_page = per_page)
         
-        user_json = [user.to_json() for user in user_database]
-        
-        response = generateResponse(user_json, True)
-        
-        return response
+        return generateResponse(user_database, True)
     
     
 @api.route('/user/id/<id>')
@@ -101,8 +72,29 @@ class UserById(Resource):
     
 
 def generateResponse(result, success):
+    
+    data=[]
+    
+    for user in result.items:
+        data.append({
+            'id': user.id,
+            'name': user.name,
+            'country': user.country
+        })
+
+        meta = {
+            'page': result.page,
+            'total_pages': result.pages,
+            'total_count': result.total,
+            'prev_page': result.prev_num,
+            'next_page': result.next_num,
+            'has_next': result.has_next,
+            'has_prev': result.has_prev,
+            'total_items': len(data)
+        }
+        
     return jsonify({
-            'results':result,
-            'success': success,
-            'count': len(result)
+            'results':data,
+            'success': True,
+            'meta': meta
         })
