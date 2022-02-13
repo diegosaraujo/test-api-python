@@ -63,6 +63,19 @@ class UserByCountry(Resource):
         return response
     
     
+@api.route('/user/id/<id>')
+@api.doc(params={'id': 'Id of User'})
+class UserById(Resource):
+    def get(self, id):
+        user_database = User.query.filter(User.id == id)
+        
+        user_json = [user.to_json() for user in user_database]
+        
+        response = generateResponse(user_json, True)
+        
+        return response
+    
+    
 
 def generateResponse(result, success):
     return jsonify({
