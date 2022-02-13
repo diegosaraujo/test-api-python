@@ -41,13 +41,27 @@ class UserList(Resource):
 @api.doc(params={'name': 'Name of user'})
 class UserByName(Resource):
     def get(self, name):
-        user_database = User.query.filter(User.name==name)
+        user_database = User.query.filter(User.name==name.upper())
         
         user_json = [user.to_json() for user in user_database]
         
         response = generateResponse(user_json, True)
         
         return response
+    
+
+@api.route('/user/country/<name>')
+@api.doc(params={'name': 'Name of country'})
+class UserByCountry(Resource):
+    def get(self, name):
+        user_database = User.query.filter(User.country == name.upper())
+        
+        user_json = [user.to_json() for user in user_database]
+        
+        response = generateResponse(user_json, True)
+        
+        return response
+    
     
 
 def generateResponse(result, success):
