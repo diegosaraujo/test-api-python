@@ -20,7 +20,8 @@ class User(db.Model):
     name = db.Column(db.String(50))
     country = db.Column(db.String(50))
 
-
+    def to_json(self):
+        return {"id": self.id, "name": self.name, "country": self.country}
 
 @api.route('/users',methods=['GET'], defaults={"page": 1, "per_page": 100})
 @api.route('/users/<int:page>/<int:per_page>', methods=['GET'])
@@ -31,7 +32,7 @@ class UserList(Resource):
         per_page = per_page
         user_database = User.query.order_by(User.id).paginate(page=page, per_page = per_page)
 
-        return generateResponse(user_database, True)
+        return generateResponseWithMeta(user_database, True)
         
 
 
@@ -43,7 +44,7 @@ class UserByName(Resource):
         per_page = per_page
         user_database = User.query.filter(User.name==name.upper()).paginate(page=page, per_page = per_page)
         
-        return generateResponse(user_database, True)
+        return generateResponseWithMeta(user_database, True)
     
 
 @api.route('/user/country/<name>', defaults={"page": 1, "per_page": 100})
@@ -54,7 +55,7 @@ class UserByCountry(Resource):
         per_page = per_page
         user_database = User.query.filter(User.country == name.upper()).paginate(page=page, per_page = per_page)
         
-        return generateResponse(user_database, True)
+        return generateResponseWithMeta(user_database, True)
     
     
 @api.route('/user/id/<id>')
@@ -71,7 +72,7 @@ class UserById(Resource):
     
     
 
-def generateResponse(result, success):
+def generateResponseWithMeta(result, success):
     
     data=[]
     
@@ -95,6 +96,13 @@ def generateResponse(result, success):
         
     return jsonify({
             'results':data,
-            'success': True,
+            'success': success,
             'meta': meta
+        })
+    
+
+def generateResponse(result, success):
+    return jsonify({
+            'results':result,
+            'success': success,
         })
