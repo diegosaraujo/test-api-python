@@ -1,1 +1,1 @@
-web: gunicorn main:swagger.app
+web: gunicorn main:swagger
