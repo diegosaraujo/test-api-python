@@ -111,5 +111,5 @@ def generateResponse(result, success):
             'results':result,
             'success': success,
         })
-
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
