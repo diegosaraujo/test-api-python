@@ -112,4 +112,4 @@ def generateResponse(result, success):
             'success': success,
         })
 
-app.run()
+app.run(debug=False)
