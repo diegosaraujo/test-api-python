@@ -11,7 +11,7 @@ app, api = swagger.app, swagger.api
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost:5432/ptf'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://zosfbmzyjwqbce:8b4318a1bfa2ab78437ec6f254d894c1dc57478abc9f733fe2a436e9cc705f9b@ec2-34-205-46-149.compute-1.amazonaws.com:5432/d20ajc6qfp2q7b'
 
 db = SQLAlchemy(app)#api
 
