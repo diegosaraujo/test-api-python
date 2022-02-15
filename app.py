@@ -1,5 +1,3 @@
-# from src.controllers.users import *
-
 from flask import Flask, jsonify, Response, request
 from flask_restx import Resource, Api, Namespace
 from sqlalchemy import null
@@ -26,24 +24,9 @@ class UserList(Resource):
         user_database = User.query.order_by(User.id).paginate(page=page, per_page = per_page)
         
         if len(user_database.items) > 0 :
-            return generateResponseWithMeta(user_database, True)
+            return generateResponseWithPagination(user_database, True)
         else:
-            return generateResponseNotFound(True)  
-
-        
-@api.route('/user/name/<name>', defaults={"page": 1, "per_page": 100})
-@api.route('/user/name/<name>/<int:page>/<int:per_page>', methods=['GET'])
-class UserByName(Resource):
-    def get(self, name, page, per_page):
-        page = page
-        per_page = per_page
-        user_database = User.query.filter(User.name == name.upper()).paginate(page=page, per_page = per_page)
-        
-        if len(user_database.items) > 0 :
-            return generateResponseWithMeta(user_database, True)
-        else:
-            return generateResponseNotFound(True)  
-    
+            return generateResponseNotFound(True)      
 
 @api.route('/user/country/<name>', defaults={"page": 1, "per_page": 100})
 @api.route('/user/country/<name>/<int:page>/<int:per_page>', methods=['GET'])
@@ -54,11 +37,11 @@ class UserByCountry(Resource):
         user_database = User.query.filter(User.country == name.upper()).paginate(page=page, per_page = per_page)
 
         if len(user_database.items) > 0 :
-            return generateResponseWithMeta(user_database, True)
+            return generateResponseWithPagination(user_database, True)
         else:
             return generateResponseNotFound(True)  
     
-@api.route('/user/id/<id>')
+@api.route('/user/id/<int:id>')
 @api.doc(params={'id': 'Id of User'})
 class UserById(Resource):
     def get(self, id):
@@ -66,12 +49,12 @@ class UserById(Resource):
         
         user_json = [user.to_json() for user in user_database]
         
-        response = generateResponseWithoutMeta(user_json, True)
+        response = generateResponseWithoutPagination(user_json, True)
         
         return response
     
     
-def generateResponseWithMeta(result, success):
+def generateResponseWithPagination(result, success):
     
     data=[]
     
@@ -82,7 +65,7 @@ def generateResponseWithMeta(result, success):
             'country': user.country
         })
 
-        meta = {
+        pagination = {
             'page': result.page,
             'total_pages': result.pages,
             'total_count': result.total,
@@ -96,11 +79,11 @@ def generateResponseWithMeta(result, success):
     return jsonify({
             'results':data,
             'success': success,
-            'meta': meta
+            'pagination': pagination
         })
     
 
-def generateResponseWithoutMeta(result, success):
+def generateResponseWithoutPagination(result, success):
     return jsonify({
             'results':result,
             'success': success,
