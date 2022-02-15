@@ -1,7 +1,8 @@
-from src.config.swagger import swagger
+from src.config.instance import instance
 from flask_sqlalchemy import SQLAlchemy
 
-app = swagger.app
+
+app = instance.app
 
 db = SQLAlchemy(app)
 
