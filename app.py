@@ -2,31 +2,19 @@
 
 from flask import Flask, jsonify, Response, request
 from flask_restx import Resource, Api, Namespace
-from src.models.user import user
-import json
+from sqlalchemy import null
+from src.models.user import User
 
 from flask_sqlalchemy import SQLAlchemy
-# from src.config.swagger import swagger
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='API from Test PTF', description='API maked from test. Maked by Diego Santos Araujo', doc='/docs')
-
-#app, api = swagger.app, swagger.api
-#conn = database.app
-
+api = Api(app, version='1.0', title='API from Test PTF', description='API maked from test. Maked by Diego Santos Araujo', doc='/docs', default='UserController', default_label='This controller return datas of User')
+db = SQLAlchemy(app)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://zosfbmzyjwqbce:8b4318a1bfa2ab78437ec6f254d894c1dc57478abc9f733fe2a436e9cc705f9b@ec2-34-205-46-149.compute-1.amazonaws.com:5432/d20ajc6qfp2q7b'
 
-db = SQLAlchemy(app)#api
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-    country = db.Column(db.String(50))
-
-    def to_json(self):
-        return {"id": self.id, "name": self.name, "country": self.country}
 
 @api.route('/users',methods=['GET'], defaults={"page": 1, "per_page": 100})
 @api.route('/users/<int:page>/<int:per_page>', methods=['GET'])
@@ -36,20 +24,25 @@ class UserList(Resource):
         page = page
         per_page = per_page
         user_database = User.query.order_by(User.id).paginate(page=page, per_page = per_page)
-
-        return generateResponseWithMeta(user_database, True)
         
+        if len(user_database.items) > 0 :
+            return generateResponseWithMeta(user_database, True)
+        else:
+            return generateResponseNotFound(True)  
 
-
+        
 @api.route('/user/name/<name>', defaults={"page": 1, "per_page": 100})
 @api.route('/user/name/<name>/<int:page>/<int:per_page>', methods=['GET'])
 class UserByName(Resource):
     def get(self, name, page, per_page):
         page = page
         per_page = per_page
-        user_database = User.query.filter(User.name==name.upper()).paginate(page=page, per_page = per_page)
+        user_database = User.query.filter(User.name == name.upper()).paginate(page=page, per_page = per_page)
         
-        return generateResponseWithMeta(user_database, True)
+        if len(user_database.items) > 0 :
+            return generateResponseWithMeta(user_database, True)
+        else:
+            return generateResponseNotFound(True)  
     
 
 @api.route('/user/country/<name>', defaults={"page": 1, "per_page": 100})
@@ -59,9 +52,11 @@ class UserByCountry(Resource):
         page = page
         per_page = per_page
         user_database = User.query.filter(User.country == name.upper()).paginate(page=page, per_page = per_page)
-        
-        return generateResponseWithMeta(user_database, True)
-    
+
+        if len(user_database.items) > 0 :
+            return generateResponseWithMeta(user_database, True)
+        else:
+            return generateResponseNotFound(True)  
     
 @api.route('/user/id/<id>')
 @api.doc(params={'id': 'Id of User'})
@@ -71,12 +66,11 @@ class UserById(Resource):
         
         user_json = [user.to_json() for user in user_database]
         
-        response = generateResponse(user_json, True)
+        response = generateResponseWithoutMeta(user_json, True)
         
         return response
     
     
-
 def generateResponseWithMeta(result, success):
     
     data=[]
@@ -106,10 +100,19 @@ def generateResponseWithMeta(result, success):
         })
     
 
-def generateResponse(result, success):
+def generateResponseWithoutMeta(result, success):
     return jsonify({
             'results':result,
             'success': success,
         })
+    
+def generateResponseNotFound(success):
+    return jsonify({
+            'results':[],
+            'success': success,
+            'message': 'Name not found'
+        })
+    
+    
 if __name__ == '__main__':
     app.run(debug=True)
